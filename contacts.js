@@ -8,11 +8,12 @@ const encodingSystem = "utf-8";
 async function listContacts() {
   try {
     const data = await readFile(contactsPath, encodingSystem);
+
     const contacts = JSON.parse(data);
 
     return contacts;
   } catch (error) {
-    console.error(error.message);
+    console.error(error);
   }
 }
 
@@ -20,6 +21,10 @@ async function getContactById(contactId) {
   try {
     const contacts = await listContacts();
     const contact = contacts.filter(({ id }) => id === contactId.toString());
+
+    if (!contact.length) {
+      throw new Error("No such contact exists.");
+    }
 
     return contact;
   } catch (error) {
@@ -29,6 +34,15 @@ async function getContactById(contactId) {
 
 async function addContact(name, email, phone) {
   try {
+    const contacts = await listContacts();
+    const contactAlreadyExists = contacts.some(
+      (contact) => contact.name === name
+    );
+
+    if (contactAlreadyExists) {
+      throw new Error("A contact with such name already exists.");
+    }
+
     const newContact = {
       id: uuidv4(),
       name,
@@ -36,11 +50,9 @@ async function addContact(name, email, phone) {
       phone,
     };
 
-    const contacts = await listContacts();
-
     contacts.push(newContact);
 
-    result = await writeFile(contactsPath, JSON.stringify(contacts));
+    await writeFile(contactsPath, JSON.stringify(contacts));
   } catch (error) {
     console.error(error.message);
   }
@@ -52,6 +64,12 @@ async function removeContact(contactId) {
     const newContacts = contacts.filter(
       ({ id }) => id !== contactId.toString()
     );
+
+    if (!contactToRemove.length) {
+      throw new Error(
+        "It is not possible to delete the contact because it does not exist."
+      );
+    }
 
     await writeFile(contactsPath, JSON.stringify(newContacts));
   } catch (error) {
