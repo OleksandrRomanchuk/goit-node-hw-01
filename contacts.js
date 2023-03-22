@@ -20,9 +20,9 @@ async function listContacts() {
 async function getContactById(contactId) {
   try {
     const contacts = await listContacts();
-    const contact = contacts.filter(({ id }) => id === contactId.toString());
+    const contact = contacts.find(({ id }) => id === contactId.toString());
 
-    if (!contact.length) {
+    if (!contact) {
       throw new Error("No such contact exists.");
     }
 
@@ -35,7 +35,7 @@ async function getContactById(contactId) {
 async function addContact(name, email, phone) {
   try {
     const contacts = await listContacts();
-    const contactAlreadyExists = contacts.some(
+    const contactAlreadyExists = contacts.find(
       (contact) => contact.name === name
     );
 
